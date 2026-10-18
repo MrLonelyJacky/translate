@@ -1,0 +1,78 @@
+server:
+  port: 8090
+
+spring:
+  profiles:
+    # Default is mysql in this file. Use local/prod profile groups for environment-specific overrides.
+    active: prod
+  application:
+    name: docbridge-backend
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    root: INFO
+    com.docbridge.backend: INFO
+
+app:
+  auth:
+    enabled: ${APP_AUTH_ENABLED:false}
+  jwt:
+    # For local MVP only. Override with APP_JWT_SECRET in non-dev environments.
+    secret: ${APP_JWT_SECRET:docbridge-dev-secret-please-change-in-production-32-bytes-minimum}
+    expire-seconds: ${APP_JWT_EXPIRE_SECONDS:7200}
+  quota:
+    free-total: ${APP_FREE_TOTAL:1000}
+    monthly-free-total: ${APP_MONTHLY_FREE_TOTAL:1000}
+    monthly-reset-cron: ${APP_MONTHLY_RESET_CRON:0 0 0 1 * ?}
+    monthly-reset-zone: ${APP_MONTHLY_RESET_ZONE:Asia/Shanghai}
+  storage:
+    local-dir: ${APP_STORAGE_LOCAL_DIR:./data/storage}
+  ocr:
+    provider: ${APP_OCR_PROVIDER:tencent}
+    timeout-seconds: ${APP_OCR_TIMEOUT_SECONDS:20}
+    tencent:
+      secret-id: ${APP_OCR_TENCENT_SECRET_ID:}
+      secret-key: ${APP_OCR_TENCENT_SECRET_KEY:}
+      region: ${APP_OCR_TENCENT_REGION:ap-beijing}
+    baidu:
+      api-key: ${APP_OCR_BAIDU_API_KEY:}
+      secret-key: ${APP_OCR_BAIDU_SECRET_KEY:}
+      token-url: ${APP_OCR_BAIDU_TOKEN_URL:https://aip.baidubce.com/oauth/2.0/token}
+      ocr-url: ${APP_OCR_BAIDU_URL:https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic}
+  translate:
+    enabled: ${APP_TRANSLATE_ENABLED:true}
+    provider: ${APP_TRANSLATE_PROVIDER:tencent}
+    tencent:
+      secret-id: ${APP_TRANSLATE_TENCENT_SECRET_ID:}
+      secret-key: ${APP_TRANSLATE_TENCENT_SECRET_KEY:}
+      region: ${APP_TRANSLATE_TENCENT_REGION:ap-beijing}
+      project-id: ${APP_TRANSLATE_TENCENT_PROJECT_ID:0}
+    baidu:
+      app-id: ${APP_TRANSLATE_BAIDU_APP_ID:}
+      secret-key: ${APP_TRANSLATE_BAIDU_SECRET_KEY:}
+      endpoint: ${APP_TRANSLATE_BAIDU_ENDPOINT:https://fanyi-api.baidu.com/api/trans/vip/translate}
+    source-lang: ${APP_TRANSLATE_SOURCE_LANG:en}
+    target-lang: ${APP_TRANSLATE_TARGET_LANG:zh}
+    timeout-seconds: ${APP_TRANSLATE_TIMEOUT_SECONDS:20}
+    batch-max-lines: ${APP_TRANSLATE_BATCH_MAX_LINES:30}
+    batch-max-chars: ${APP_TRANSLATE_BATCH_MAX_CHARS:1500}
+  wechat:
+    enabled: ${APP_WECHAT_ENABLED:false}
+    app-id: ${APP_WECHAT_APP_ID:}
+    app-secret: ${APP_WECHAT_APP_SECRET:}
+    redirect-uri: ${APP_WECHAT_REDIRECT_URI:http://localhost/api/v1/auth/wechat/callback}
+    frontend-origin: ${APP_WECHAT_FRONTEND_ORIGIN:http://localhost}

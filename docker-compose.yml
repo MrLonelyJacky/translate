@@ -1,0 +1,68 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: docbridge-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: docbridge
+      MYSQL_USER: docbridge
+      MYSQL_PASSWORD: docbridge
+      MYSQL_ROOT_PASSWORD: root
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: docbridge-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8090
+      DB_URL: jdbc:mysql://mysql:3306/docbridge?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: docbridge
+      DB_PASSWORD: docbridge
+      APP_AUTH_ENABLED: "false"
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_OCR_TENCENT_SECRET_ID: ${APP_OCR_TENCENT_SECRET_ID}
+      APP_OCR_TENCENT_SECRET_KEY: ${APP_OCR_TENCENT_SECRET_KEY}
+      APP_OCR_TENCENT_REGION: ${APP_OCR_TENCENT_REGION:-ap-beijing}
+      APP_TRANSLATE_ENABLED: "true"
+      APP_TRANSLATE_TENCENT_SECRET_ID: ${APP_TRANSLATE_TENCENT_SECRET_ID}
+      APP_TRANSLATE_TENCENT_SECRET_KEY: ${APP_TRANSLATE_TENCENT_SECRET_KEY}
+      APP_TRANSLATE_TENCENT_REGION: ${APP_TRANSLATE_TENCENT_REGION:-ap-beijing}
+      APP_TRANSLATE_TENCENT_PROJECT_ID: ${APP_TRANSLATE_TENCENT_PROJECT_ID:-0}
+      APP_FREE_TOTAL: ${APP_FREE_TOTAL:-1000}
+    volumes:
+      - backend-storage:/app/data/storage
+    expose:
+      - "8090"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: docbridge-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  mysql-data:
+  backend-storage:
+

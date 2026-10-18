@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521:xe
+    username: C##TRANSLATE
+    password: TRANSLATE
+    driver-class-name: oracle.jdbc.OracleDriver
+  sql:
+    init:
+      mode: never
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+
+logging:
+  level:
+    org.mybatis: DEBUG
+    org.mybatis.spring: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+
