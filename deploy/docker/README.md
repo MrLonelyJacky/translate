@@ -1,42 +1,26 @@
 # Docker Deployment
 
-This project uses three containers in production-like mode:
+The frontend/Nginx and Spring Boot backend run in Docker. MySQL is an external
+service and is not created or managed by Docker Compose.
 
-- `frontend` (Nginx serving Vue `dist`)
-- `backend` (Spring Boot API)
-- `mysql` (MySQL 8.4)
+For the production runbook—including external MySQL setup, schema initialization,
+firewall requirements, HTTPS, backups, and troubleshooting—see
+[`../../DEPLOYMENT.md`](../../DEPLOYMENT.md).
 
-## 1. Prepare env file
+## Quick start
 
-Copy `.env.example` to `.env` and fill secrets:
+1. Prepare a production `.env` based on `.env.example`. Set `DB_URL`,
+   `DB_USERNAME`, and `DB_PASSWORD` to credentials and an address reachable
+   from the backend container.
+2. Ensure the external MySQL database and tables are ready.
+3. Build and start:
 
-```powershell
-cd C:\devlopEnv\project\translate
-Copy-Item .env.example .env
-```
-
-## 2. Build and start
-
-```powershell
-cd C:\devlopEnv\project\translate
+```sh
 docker compose up -d --build
 ```
 
-## 3. Access
+The frontend/Nginx container publishes host port 80. Stop the application with:
 
-- App: `http://localhost`
-- Backend health: `http://localhost/api/actuator/health`
-
-## 4. Stop
-
-```powershell
-cd C:\devlopEnv\project\translate
+```sh
 docker compose down
 ```
-
-## Notes
-
-- Backend runs with `SPRING_PROFILES_ACTIVE=prod` in compose.
-- API requests are proxied by `deploy/nginx/prod.conf` from `/api/` to `backend:8090`.
-- Storage files are persisted in docker volume `backend-storage`.
-

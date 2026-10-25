@@ -16,23 +16,8 @@ DocBridge is now an image-focused OCR + translation MVP.
 
 See `deploy/nginx/README.md` for full startup steps.
 
-## Docker Deployment
+## Production Deployment
 
-Docker files are prepared for production-style deployment:
-
-- `backend/Dockerfile`
-- `frontend/Dockerfile`
-- `docker-compose.yml`
-- `deploy/nginx/prod.conf`
-
-Quick start:
-
-```powershell
-cd C:\devlopEnv\project\translate
-Copy-Item .env.example .env
-# fill required secrets in .env
-docker compose up -d --build
-```
-
-App entry: `http://localhost`
-
+The frontend/Nginx and Spring Boot backend run in Docker; MySQL is an external
+service. Follow [`DEPLOYMENT.md`](DEPLOYMENT.md) for database preparation,
+production configuration, HTTPS, startup, and operational checks.
