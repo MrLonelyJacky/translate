@@ -12,6 +12,7 @@ export type TranslateLine = {
 }
 
 const STORAGE_KEY = 'docbridge_image_translate_result'
+const OCR_DRAFT_STORAGE_KEY = 'docbridge_image_ocr_draft'
 
 const isBlobUrl = (value: string) => value.startsWith('blob:')
 
@@ -19,6 +20,8 @@ export const useTranslateStore = defineStore('translate', () => {
   const imageUrl = ref<string>('')
   const lines = ref<TranslateLine[]>([])
   const sourceName = ref<string>('')
+  const ocrText = ref<string>('')
+  const ocrCount = ref<number>(0)
 
   const revokeIfBlob = (url: string) => {
     if (url && isBlobUrl(url)) {
@@ -61,11 +64,57 @@ export const useTranslateStore = defineStore('translate', () => {
     }
   }
 
+  const setOcrDraft = (payload: { imageUrl: string; sourceName: string; ocrText: string; ocrCount: number }) => {
+    if (imageUrl.value && imageUrl.value !== payload.imageUrl && lines.value.length > 0) {
+      revokeIfBlob(imageUrl.value)
+    }
+    imageUrl.value = payload.imageUrl
+    sourceName.value = payload.sourceName
+    ocrText.value = payload.ocrText
+    ocrCount.value = payload.ocrCount
+    const persistableImageUrl = isBlobUrl(payload.imageUrl) ? '' : payload.imageUrl
+    sessionStorage.setItem(
+      OCR_DRAFT_STORAGE_KEY,
+      JSON.stringify({
+        imageUrl: persistableImageUrl,
+        sourceName: payload.sourceName,
+        ocrText: payload.ocrText,
+        ocrCount: payload.ocrCount,
+      }),
+    )
+  }
+
+  const hydrateOcrDraft = () => {
+    if (ocrText.value) {
+      return
+    }
+    const raw = sessionStorage.getItem(OCR_DRAFT_STORAGE_KEY)
+    if (!raw) {
+      return
+    }
+    try {
+      const parsed = JSON.parse(raw)
+      imageUrl.value = parsed.imageUrl ?? imageUrl.value
+      sourceName.value = parsed.sourceName ?? sourceName.value
+      ocrText.value = parsed.ocrText ?? ''
+      ocrCount.value = Number(parsed.ocrCount ?? 0)
+    } catch {
+      clearOcrDraft()
+    }
+  }
+
+  const clearOcrDraft = () => {
+    ocrText.value = ''
+    ocrCount.value = 0
+    sessionStorage.removeItem(OCR_DRAFT_STORAGE_KEY)
+  }
+
   const clearResult = () => {
     revokeIfBlob(imageUrl.value)
     imageUrl.value = ''
     lines.value = []
     sourceName.value = ''
+    clearOcrDraft()
     sessionStorage.removeItem(STORAGE_KEY)
   }
 
@@ -73,8 +122,13 @@ export const useTranslateStore = defineStore('translate', () => {
     imageUrl,
     lines,
     sourceName,
+    ocrText,
+    ocrCount,
     setResult,
+    setOcrDraft,
+    clearOcrDraft,
     clearResult,
     hydrate,
+    hydrateOcrDraft,
   }
 })

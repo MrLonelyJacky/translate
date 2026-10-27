@@ -137,26 +137,17 @@ public class TencentTranslatorService implements TranslatorProviderClient {
 
         boolean hasSeparatorConflict = chunk.stream().anyMatch(text -> text.contains(CHUNK_SEPARATOR));
         if (hasSeparatorConflict) {
-            log.warn("Chunk contains separator token, fallback to line-by-line translation for {} lines", chunk.size());
-            return translateLineByLine(chunk);
+            throw new BusinessException("TRANSLATION_FAILED", "翻译文本包含系统分隔标记，无法进行批量翻译", HttpStatus.BAD_GATEWAY);
         }
 
         String mergedSource = String.join(CHUNK_SEPARATOR, chunk);
         String mergedTranslated = translateByTencentApi(mergedSource);
         String[] parts = mergedTranslated.split(Pattern.quote(CHUNK_SEPARATOR), -1);
         if (parts.length != chunk.size()) {
-            log.warn("Chunk split mismatch after translation. expected={}, actual={}, fallback line-by-line", chunk.size(), parts.length);
-            return translateLineByLine(chunk);
+            log.warn("Chunk split mismatch after translation. expected={}, actual={}, continuing with partial mapping",
+                chunk.size(), parts.length);
         }
         return Arrays.asList(parts);
-    }
-
-    private List<String> translateLineByLine(List<String> chunk) {
-        List<String> translated = new ArrayList<>(chunk.size());
-        for (String source : chunk) {
-            translated.add(translateByTencentApi(source));
-        }
-        return translated;
     }
 
     private String translateByTencentApi(String sourceText) {

@@ -1,12 +1,13 @@
 # DocBridge
 
-DocBridge is now an image-focused OCR + translation MVP.
+DocBridge is an image-focused OCR + translation MVP.
 
 ## Current Scope
 
 - Input: `JPG` / `PNG`
-- Flow: upload image -> OCR -> translation -> side-by-side preview
+- Flow: upload/paste image -> OCR -> edit recognized text -> translation -> side-by-side preview
 - Output: online preview only (no download file, no async task queue)
+- Quota: OCR and translation are counted separately (1 OCR quota for `/image/ocr`, 1 translation quota for `/text/translate`)
 
 ## Local Run (Nginx, no Docker)
 

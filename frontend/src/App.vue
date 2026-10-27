@@ -5,7 +5,8 @@ const router = useRouter()
 const route = useRoute()
 
 const navItems = [
-  { path: '/upload', label: '图片翻译' },
+  { path: '/upload', label: '图文识别' },
+  { path: '/ocr', label: '文字确认' },
   { path: '/result', label: '结果预览' },
 ]
 </script>
@@ -14,8 +15,8 @@ const navItems = [
   <div class="app-shell">
     <header class="app-header modern-header">
       <div class="brand">
-        <h1>DocBridge</h1>
-        <span>Image Translate</span>
+        <h1>图文OCR</h1>
+        <span>图片文字识别与翻译</span>
       </div>
       <nav class="app-nav modern-nav">
         <button
@@ -80,4 +81,3 @@ const navItems = [
   padding: 0 24px 24px;
 }
 </style>
-

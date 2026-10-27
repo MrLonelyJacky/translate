@@ -10,9 +10,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS quota_account (
   user_id BIGINT PRIMARY KEY,
-  free_total INT NOT NULL,
-  free_used INT NOT NULL,
-  free_refunded INT NOT NULL,
+  ocr_total INT NOT NULL,
+  ocr_used INT NOT NULL,
+  ocr_refunded INT NOT NULL,
+  translate_total INT NOT NULL,
+  translate_used INT NOT NULL,
+  translate_refunded INT NOT NULL,
   updated_at DATETIME(3) NOT NULL,
   CONSTRAINT fk_quota_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -60,4 +63,3 @@ CREATE TABLE IF NOT EXISTS audit_log (
   KEY idx_audit_user_created (user_id, created_at),
   KEY idx_audit_task_created (task_id, created_at)
 );
-

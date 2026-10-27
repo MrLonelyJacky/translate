@@ -35,8 +35,10 @@ app:
     secret: ${APP_JWT_SECRET:docbridge-dev-secret-please-change-in-production-32-bytes-minimum}
     expire-seconds: ${APP_JWT_EXPIRE_SECONDS:7200}
   quota:
-    free-total: ${APP_FREE_TOTAL:1000}
-    monthly-free-total: ${APP_MONTHLY_FREE_TOTAL:1000}
+    ocr-total: ${APP_OCR_TOTAL:1000}
+    translate-total: ${APP_TRANSLATE_TOTAL:1000}
+    monthly-ocr-total: ${APP_MONTHLY_OCR_TOTAL:1000}
+    monthly-translate-total: ${APP_MONTHLY_TRANSLATE_TOTAL:1000}
     monthly-reset-cron: ${APP_MONTHLY_RESET_CRON:0 0 0 1 * ?}
     monthly-reset-zone: ${APP_MONTHLY_RESET_ZONE:Asia/Shanghai}
   storage:

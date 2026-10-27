@@ -4,7 +4,7 @@
 
 当前数据库设计服务于图片 OCR + 翻译同步流程，重点覆盖：
 - 用户与配额
-- 配额扣减流水
+- OCR/翻译双维度配额扣减流水
 - 审计日志
 
 说明：
@@ -27,10 +27,11 @@
 
 ## 3. 业务规则
 
-1. 每次调用图片翻译接口（`/api/v1/image/translate`）扣减 1 次。
-2. 当前默认免费额度：`free_total = 1000`。
-3. 无登录模式下使用开发用户 `user_id = 1001`。
-4. 配额不足时返回 `QUOTA_EXHAUSTED`。
+1. 每次调用图片 OCR 接口（`/api/v1/image/ocr`）扣减 `ocr` 配额 1 次。
+2. 每次调用文本翻译接口（`/api/v1/text/translate`）扣减 `translate` 配额 1 次。
+3. 当前默认免费额度：`ocr_total = 1000`、`translate_total = 1000`。
+4. 无登录模式下使用开发用户 `user_id = 1001`。
+5. 配额不足时返回 `QUOTA_EXHAUSTED`。
 
 ---
 
@@ -48,9 +49,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS quota_account (
   user_id BIGINT PRIMARY KEY,
-  free_total INT NOT NULL DEFAULT 1000,
-  free_used INT NOT NULL DEFAULT 0,
-  free_refunded INT NOT NULL DEFAULT 0,
+  ocr_total INT NOT NULL DEFAULT 1000,
+  ocr_used INT NOT NULL DEFAULT 0,
+  ocr_refunded INT NOT NULL DEFAULT 0,
+  translate_total INT NOT NULL DEFAULT 1000,
+  translate_used INT NOT NULL DEFAULT 0,
+  translate_refunded INT NOT NULL DEFAULT 0,
   updated_at DATETIME(3) NOT NULL,
   CONSTRAINT fk_quota_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -86,23 +90,23 @@ CREATE INDEX idx_audit_action_created ON audit_logs(action, created_at DESC);
 
 ---
 
-## 6. 配额扣减事务建议
+## 6. 配额扣减事务建议（OCR 示例）
 
 ```sql
 BEGIN;
 
 SELECT * FROM quota_account WHERE user_id = ? FOR UPDATE;
 
--- 计算 remaining = free_total + free_refunded - free_used
+-- 计算 remaining = ocr_total + ocr_refunded - ocr_used
 -- 若 <= 0 则回滚并返回 QUOTA_EXHAUSTED
 
 UPDATE quota_account
-SET free_used = free_used + 1,
+SET ocr_used = ocr_used + 1,
     updated_at = NOW(3)
 WHERE user_id = ?;
 
 INSERT INTO quota_transactions(user_id, action, amount, reason, created_at)
-VALUES (?, 'consume', 1, 'image_translate', NOW(3));
+VALUES (?, 'consume', 1, 'image_ocr', NOW(3));
 
 COMMIT;
 ```
@@ -111,10 +115,14 @@ COMMIT;
 
 ## 7. 审计动作建议
 
-- `image.translate.request`
-- `image.translate.success`
-- `image.translate.failed`
-- `quota.consume`
+- `image.ocr.request`
+- `image.ocr.success`
+- `image.ocr.failed`
+- `text.translate.request`
+- `text.translate.success`
+- `text.translate.failed`
+- `quota.consume.ocr`
+- `quota.consume.translate`
 - `quota.exhausted`
 
 ---

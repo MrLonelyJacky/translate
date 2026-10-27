@@ -14,9 +14,12 @@ CREATE UNIQUE INDEX uk_users_unionid ON users(wechat_unionid);
 
 CREATE TABLE quota_account (
   user_id NUMBER(19) PRIMARY KEY,
-  free_total NUMBER(10) NOT NULL,
-  free_used NUMBER(10) NOT NULL,
-  free_refunded NUMBER(10) NOT NULL,
+  ocr_total NUMBER(10) NOT NULL,
+  ocr_used NUMBER(10) NOT NULL,
+  ocr_refunded NUMBER(10) NOT NULL,
+  translate_total NUMBER(10) NOT NULL,
+  translate_used NUMBER(10) NOT NULL,
+  translate_refunded NUMBER(10) NOT NULL,
   updated_at TIMESTAMP(3) NOT NULL,
   CONSTRAINT fk_quota_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -66,4 +69,3 @@ CREATE TABLE audit_log (
 
 CREATE INDEX idx_audit_user_created ON audit_log(user_id, created_at);
 CREATE INDEX idx_audit_task_created ON audit_log(task_id, created_at);
-

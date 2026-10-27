@@ -4,15 +4,23 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { UploadFile, UploadRawFile } from 'element-plus'
 import { http } from '../api/http'
-import { useTranslateStore, type TranslateLine } from '../stores/translate'
+import { useTranslateStore } from '../stores/translate'
 
 const selectedFile = ref<File | null>(null)
 const imageUrl = ref<string>('')
-const translating = ref(false)
+const recognizing = ref(false)
 const router = useRouter()
 const translateStore = useTranslateStore()
 
 const maxSize = 10 * 1024 * 1024
+
+const toDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+    reader.onerror = () => reject(new Error('read image failed'))
+    reader.readAsDataURL(file)
+  })
 
 const beforeUpload = (file: UploadRawFile) => {
   if (file.size > maxSize) {
@@ -31,6 +39,7 @@ const onFileChange = (file: UploadFile) => {
   if (!file.raw) {
     selectedFile.value = null
     imageUrl.value = ''
+    translateStore.clearOcrDraft()
     return
   }
 
@@ -38,6 +47,7 @@ const onFileChange = (file: UploadFile) => {
     ElMessage.error('仅支持 JPG/PNG 图片')
     selectedFile.value = null
     imageUrl.value = ''
+    translateStore.clearOcrDraft()
     return
   }
 
@@ -45,6 +55,7 @@ const onFileChange = (file: UploadFile) => {
     ElMessage.error('图片大小超过 10MB 限制')
     selectedFile.value = null
     imageUrl.value = ''
+    translateStore.clearOcrDraft()
     return
   }
 
@@ -53,6 +64,7 @@ const onFileChange = (file: UploadFile) => {
   }
   selectedFile.value = file.raw
   imageUrl.value = URL.createObjectURL(file.raw)
+  translateStore.clearOcrDraft()
 }
 
 const setFileFromClipboard = (file: File) => {
@@ -69,6 +81,7 @@ const setFileFromClipboard = (file: File) => {
   }
   selectedFile.value = file
   imageUrl.value = URL.createObjectURL(file)
+  translateStore.clearOcrDraft()
   ElMessage.success('已从剪贴板粘贴图片')
 }
 
@@ -89,34 +102,42 @@ const onPaste = (event: ClipboardEvent) => {
   }
 }
 
-const translateImage = async () => {
+const recognizeImage = async () => {
   if (!selectedFile.value) {
     ElMessage.warning('请先选择图片')
     return
   }
 
-  translating.value = true
+  recognizing.value = true
   try {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
-    const { data } = await http.post('/image/translate', formData)
-    const resultLines: TranslateLine[] = data.data?.lines ?? []
-    if (resultLines.length === 0) {
+    const { data } = await http.post('/image/ocr', formData)
+    const text = data.data?.recognizedText ?? ''
+    const total = Number(data.data?.total ?? 0)
+    if (!text.trim()) {
       ElMessage.warning('未识别到文字内容')
     } else {
-      translateStore.setResult({
-        imageUrl: imageUrl.value,
-        lines: resultLines,
-        sourceName: selectedFile.value.name,
+      let draftImageUrl = imageUrl.value
+      try {
+        draftImageUrl = await toDataUrl(selectedFile.value)
+      } catch {
+        draftImageUrl = imageUrl.value
+      }
+      translateStore.setOcrDraft({
+        imageUrl: draftImageUrl,
+        sourceName: selectedFile.value?.name ?? 'clipboard-image.png',
+        ocrText: text,
+        ocrCount: total,
       })
-      ElMessage.success(`识别并翻译完成，共 ${resultLines.length} 条`)
-      router.push('/result')
+      ElMessage.success(`识别完成，共 ${total} 条`)
+      router.push('/ocr')
     }
   } catch (error: any) {
-    const message = error?.response?.data?.message ?? '识别翻译失败，请稍后重试'
+    const message = error?.response?.data?.message ?? '文字识别失败，请稍后重试'
     ElMessage.error(message)
   } finally {
-    translating.value = false
+    recognizing.value = false
   }
 }
 
@@ -133,9 +154,9 @@ onBeforeUnmount(() => {
 <template>
   <section class="landing-wrap">
     <div class="hero-block">
-      <p class="hero-tag">DocBridge</p>
-      <h1>图片翻译工具</h1>
-      <p class="hero-subtitle">上传或粘贴截图，立即获得 OCR 识别与中英对照翻译结果</p>
+      <p class="hero-tag">图文OCR</p>
+      <h1>图片识别与翻译工具</h1>
+      <p class="hero-subtitle">先识别文字并编辑确认，再一键翻译</p>
     </div>
 
     <div class="upload-card">
@@ -159,8 +180,8 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="upload-actions">
-        <el-button type="primary" size="large" :loading="translating" @click="translateImage">
-          开始翻译
+        <el-button type="primary" size="large" :loading="recognizing" @click="recognizeImage">
+          开始识别
         </el-button>
       </div>
     </div>
@@ -240,4 +261,3 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 </style>
-

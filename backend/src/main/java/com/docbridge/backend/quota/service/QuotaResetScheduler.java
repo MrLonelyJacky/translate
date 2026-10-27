@@ -15,12 +15,15 @@ public class QuotaResetScheduler {
     private static final Logger log = LoggerFactory.getLogger(QuotaResetScheduler.class);
 
     private final QuotaAccountMapper quotaAccountMapper;
-    private final int monthlyFreeTotal;
+    private final int monthlyOcrTotal;
+    private final int monthlyTranslateTotal;
 
     public QuotaResetScheduler(QuotaAccountMapper quotaAccountMapper,
-                               @Value("${app.quota.monthly-free-total:1000}") int monthlyFreeTotal) {
+                               @Value("${app.quota.monthly-ocr-total:1000}") int monthlyOcrTotal,
+                               @Value("${app.quota.monthly-translate-total:1000}") int monthlyTranslateTotal) {
         this.quotaAccountMapper = quotaAccountMapper;
-        this.monthlyFreeTotal = monthlyFreeTotal;
+        this.monthlyOcrTotal = monthlyOcrTotal;
+        this.monthlyTranslateTotal = monthlyTranslateTotal;
     }
 
     @Scheduled(
@@ -28,8 +31,8 @@ public class QuotaResetScheduler {
         zone = "${app.quota.monthly-reset-zone:Asia/Shanghai}"
     )
     public void resetMonthlyQuota() {
-        int affected = quotaAccountMapper.resetAllMonthlyQuota(monthlyFreeTotal, LocalDateTime.now());
-        log.info("Monthly quota reset done. freeTotal={}, affectedRows={}", monthlyFreeTotal, affected);
+        int affected = quotaAccountMapper.resetAllMonthlyQuota(monthlyOcrTotal, monthlyTranslateTotal, LocalDateTime.now());
+        log.info("Monthly quota reset done. ocrTotal={}, translateTotal={}, affectedRows={}",
+            monthlyOcrTotal, monthlyTranslateTotal, affected);
     }
 }
-

@@ -39,7 +39,7 @@ const lineCount = computed(() => translateStore.lines.length)
     <div class="result-header">
       <div>
         <h1>翻译结果</h1>
-        <p>原图 + OCR识别 + 译文对照（共 {{ lineCount }} 条）</p>
+        <p>可编辑识别文本与译文对照（共 {{ lineCount }} 条）</p>
       </div>
       <div class="result-actions">
         <el-button @click="router.push('/upload')">重新上传</el-button>
@@ -158,4 +158,3 @@ const lineCount = computed(() => translateStore.lines.length)
   color: #1f7a38;
 }
 </style>
-

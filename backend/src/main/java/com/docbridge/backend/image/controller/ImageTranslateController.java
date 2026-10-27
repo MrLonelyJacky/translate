@@ -2,6 +2,7 @@ package com.docbridge.backend.image.controller;
 
 import com.docbridge.backend.common.api.ApiResponse;
 import com.docbridge.backend.common.web.RequestIdFilter;
+import com.docbridge.backend.image.dto.ImageOcrResponse;
 import com.docbridge.backend.image.dto.ImageTranslateResponse;
 import com.docbridge.backend.image.service.ImageTranslateService;
 import org.slf4j.MDC;
@@ -24,10 +25,10 @@ public class ImageTranslateController {
         this.imageTranslateService = imageTranslateService;
     }
 
-    @PostMapping("/translate")
-    public ApiResponse<ImageTranslateResponse> translate(Authentication authentication, @RequestPart("file") MultipartFile file) {
+    @PostMapping("/ocr")
+    public ApiResponse<ImageOcrResponse> ocr(Authentication authentication, @RequestPart("file") MultipartFile file) {
         Long userId = resolveUserId(authentication);
-        return ApiResponse.ok(imageTranslateService.translate(userId, file), requestId());
+        return ApiResponse.ok(imageTranslateService.ocr(userId, file), requestId());
     }
 
     private String requestId() {
@@ -42,4 +43,3 @@ public class ImageTranslateController {
         return Long.parseLong(authentication.getName());
     }
 }
-

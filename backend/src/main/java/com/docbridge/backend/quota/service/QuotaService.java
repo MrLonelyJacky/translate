@@ -17,12 +17,27 @@ public class QuotaService {
     public QuotaResponse getMyQuota(Long userId) {
         QuotaAccountEntity quota = quotaAccountMapper.selectById(userId);
         if (quota == null) {
-            return new QuotaResponse(0, 0, 0, 0);
+            return new QuotaResponse(0, 0, 0, 0, 0, 0, 0, 0);
         }
-        int total = quota.getFreeTotal();
-        int used = quota.getFreeUsed();
-        int refunded = quota.getFreeRefunded();
-        return new QuotaResponse(total, used, refunded, total + refunded - used);
+        int ocrTotal = valueOrZero(quota.getOcrTotal());
+        int ocrUsed = valueOrZero(quota.getOcrUsed());
+        int ocrRefunded = valueOrZero(quota.getOcrRefunded());
+        int translateTotal = valueOrZero(quota.getTranslateTotal());
+        int translateUsed = valueOrZero(quota.getTranslateUsed());
+        int translateRefunded = valueOrZero(quota.getTranslateRefunded());
+        return new QuotaResponse(
+            ocrTotal,
+            ocrUsed,
+            ocrRefunded,
+            ocrTotal + ocrRefunded - ocrUsed,
+            translateTotal,
+            translateUsed,
+            translateRefunded,
+            translateTotal + translateRefunded - translateUsed
+        );
+    }
+
+    private int valueOrZero(Integer value) {
+        return value == null ? 0 : value;
     }
 }
-

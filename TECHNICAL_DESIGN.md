@@ -6,9 +6,9 @@
 
 MVP 范围（当前）：
 - 仅支持图片输入：`JPG`、`PNG`
-- 识别链路：图片上传 -> OCR -> 翻译 -> 在线对照预览
+- 识别链路：图片上传 -> OCR -> 文本编辑 -> 翻译 -> 在线对照预览
 - 结果形态：左侧原图，右侧原文/译文列表
-- 配额控制：每次调用接口扣减 1 次免费额度
+- 配额控制：OCR 与翻译双维度独立配额
 
 MVP 暂不包含：
 - PDF/DOCX/PPTX/XLSX 处理
@@ -27,11 +27,12 @@ MVP 暂不包含：
 
 调用链路（同步）：
 1. 用户在上传页上传或粘贴截图。
-2. 前端调用 `POST /api/v1/image/translate`。
-3. 后端做图片校验与配额扣减。
-4. 后端调用腾讯 OCR，获取文本行与位置信息。
-5. 后端调用腾讯翻译，按 OCR 行逐条翻译。
-6. 返回结构化结果，前端跳转结果页展示左图右文。
+2. 前端调用 `POST /api/v1/image/ocr`。
+3. 后端做图片校验并扣减 OCR 配额。
+4. 后端调用腾讯 OCR，返回可编辑识别文本与行坐标。
+5. 用户编辑确认文本后，前端调用 `POST /api/v1/text/translate`。
+6. 后端扣减翻译配额并调用腾讯翻译，按文本行逐条翻译。
+7. 返回结构化翻译结果，前端跳转结果页展示左图右文。
 
 ## 3. 输入边界与校验
 
@@ -56,14 +57,16 @@ MVP 暂不包含：
 
 说明：
 - `task` 相关模型与逻辑已下线，不再参与流程。
-- 配额按用户维度扣减，每次图片翻译调用扣 1 次。
+- 配额按用户维度扣减，OCR 与翻译分别独立扣减。
 
 ## 5. 后端模块说明
 
 - `image.controller.ImageTranslateController`
-  - `POST /api/v1/image/translate`
+  - `POST /api/v1/image/ocr`
+- `image.controller.TextTranslateController`
+  - `POST /api/v1/text/translate`
 - `image.service.ImageTranslateService`
-  - 图片校验、配额扣减、OCR+翻译编排
+  - 图片校验、双维度配额扣减、OCR 与文本翻译编排
 - `processing.ocr.TencentOcrService`
   - 腾讯 OCR TC3 签名调用
 - `processing.translate.TencentTranslatorService`
@@ -71,7 +74,7 @@ MVP 暂不包含：
 
 ## 6. 前端页面与路由
 
-- `/upload`：中心化上传页（支持拖拽/点击/Ctrl+V）
+- `/upload`：中心化上传页（支持拖拽/点击/Ctrl+V，识别文本可复制与编辑，再触发翻译）
 - `/result`：结果页（左图右文对照，支持复制全部）
 
 状态管理：

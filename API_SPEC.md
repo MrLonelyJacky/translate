@@ -31,12 +31,12 @@
 
 ---
 
-## 2. 图片翻译接口
+## 2. OCR 与翻译接口
 
-### 2.1 图片 OCR + 翻译
+### 2.1 图片 OCR 识别
 
 - 方法：`POST`
-- 路径：`/image/translate`
+- 路径：`/image/ocr`
 - 鉴权：可选（当前开发模式可无鉴权）
 - `Content-Type`：`multipart/form-data`
 
@@ -44,8 +44,59 @@
 - `file`：图片文件（必填，`JPG/PNG`）
 
 业务规则：
-- 每次成功进入处理流程扣减 1 次配额
+- 每次成功进入 OCR 处理流程扣减 1 次 OCR 配额
 - 限制大小：`<= 10MB`
+
+响应 `200`：
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "...",
+  "data": {
+    "total": 2,
+    "recognizedText": "Hello World\nSettings",
+    "lines": [
+      {
+        "order": 1,
+        "sourceText": "Hello World",
+        "left": 100,
+        "top": 120,
+        "right": 260,
+        "bottom": 150
+      },
+      {
+        "order": 2,
+        "sourceText": "Settings",
+        "left": 98,
+        "top": 200,
+        "right": 210,
+        "bottom": 228
+      }
+    ]
+  }
+}
+```
+
+### 2.2 文本翻译（翻译编辑后的识别文本）
+
+- 方法：`POST`
+- 路径：`/text/translate`
+- 鉴权：可选（当前开发模式可无鉴权）
+- `Content-Type`：`application/json`
+
+请求体：
+
+```json
+{
+  "text": "Hello World\nSettings"
+}
+```
+
+业务规则：
+- 每次调用翻译接口扣减 1 次翻译配额
+- `text` 不能为空（空值/全空白返回 `BAD_REQUEST`）
 
 响应 `200`：
 
@@ -61,19 +112,19 @@
         "order": 1,
         "sourceText": "Hello World",
         "translatedText": "你好，世界",
-        "left": 100,
-        "top": 120,
-        "right": 260,
-        "bottom": 150
+        "left": null,
+        "top": null,
+        "right": null,
+        "bottom": null
       },
       {
         "order": 2,
         "sourceText": "Settings",
         "translatedText": "设置",
-        "left": 98,
-        "top": 200,
-        "right": 210,
-        "bottom": 228
+        "left": null,
+        "top": null,
+        "right": null,
+        "bottom": null
       }
     ]
   }
@@ -97,10 +148,14 @@
   "message": "success",
   "requestId": "...",
   "data": {
-    "freeTotal": 1000,
-    "freeUsed": 12,
-    "freeRefunded": 0,
-    "freeRemaining": 988
+    "ocrTotal": 1000,
+    "ocrUsed": 12,
+    "ocrRefunded": 0,
+    "ocrRemaining": 988,
+    "translateTotal": 1000,
+    "translateUsed": 5,
+    "translateRefunded": 0,
+    "translateRemaining": 995
   }
 }
 ```
@@ -151,7 +206,8 @@
 ## 7. 限流与性能建议
 
 建议值（可配置）：
-- 图片翻译接口：`5 req/min/用户`
+- 图片 OCR 接口：`5 req/min/用户`
+- 文本翻译接口：`5 req/min/用户`
 - 超时控制：`20s`~`30s`（OCR/翻译外部依赖）
 
 ---

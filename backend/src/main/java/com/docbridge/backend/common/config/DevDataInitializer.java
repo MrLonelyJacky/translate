@@ -16,7 +16,8 @@ public class DevDataInitializer {
 
     @Bean
     ApplicationRunner initDevUser(@Value("${app.auth.enabled:false}") boolean authEnabled,
-                                  @Value("${app.quota.free-total:3}") int freeTotal,
+                                  @Value("${app.quota.ocr-total:3}") int ocrTotal,
+                                  @Value("${app.quota.translate-total:3}") int translateTotal,
                                   UserMapper userMapper,
                                   QuotaAccountMapper quotaAccountMapper) {
         return args -> {
@@ -41,17 +42,23 @@ public class DevDataInitializer {
             if (existingQuota == null) {
                 QuotaAccountEntity quota = new QuotaAccountEntity();
                 quota.setUserId(devUserId);
-                quota.setFreeTotal(freeTotal);
-                quota.setFreeUsed(0);
-                quota.setFreeRefunded(0);
+                quota.setOcrTotal(ocrTotal);
+                quota.setOcrUsed(0);
+                quota.setOcrRefunded(0);
+                quota.setTranslateTotal(translateTotal);
+                quota.setTranslateUsed(0);
+                quota.setTranslateRefunded(0);
                 quota.setUpdatedAt(LocalDateTime.now());
                 quotaAccountMapper.insert(quota);
-            } else if (existingQuota.getFreeTotal() == null || existingQuota.getFreeTotal() != freeTotal) {
-                existingQuota.setFreeTotal(freeTotal);
+            } else if (existingQuota.getOcrTotal() == null
+                || existingQuota.getTranslateTotal() == null
+                || existingQuota.getOcrTotal() != ocrTotal
+                || existingQuota.getTranslateTotal() != translateTotal) {
+                existingQuota.setOcrTotal(ocrTotal);
+                existingQuota.setTranslateTotal(translateTotal);
                 existingQuota.setUpdatedAt(LocalDateTime.now());
                 quotaAccountMapper.updateById(existingQuota);
             }
         };
     }
 }
-

@@ -11,9 +11,12 @@ public class QuotaAccountEntity {
 
     @TableId(value = "user_id", type = IdType.INPUT)
     private Long userId;
-    private Integer freeTotal;
-    private Integer freeUsed;
-    private Integer freeRefunded;
+    private Integer ocrTotal;
+    private Integer ocrUsed;
+    private Integer ocrRefunded;
+    private Integer translateTotal;
+    private Integer translateUsed;
+    private Integer translateRefunded;
     private LocalDateTime updatedAt;
 
     public Long getUserId() {
@@ -24,28 +27,52 @@ public class QuotaAccountEntity {
         this.userId = userId;
     }
 
-    public Integer getFreeTotal() {
-        return freeTotal;
+    public Integer getOcrTotal() {
+        return ocrTotal;
     }
 
-    public void setFreeTotal(Integer freeTotal) {
-        this.freeTotal = freeTotal;
+    public void setOcrTotal(Integer ocrTotal) {
+        this.ocrTotal = ocrTotal;
     }
 
-    public Integer getFreeUsed() {
-        return freeUsed;
+    public Integer getOcrUsed() {
+        return ocrUsed;
     }
 
-    public void setFreeUsed(Integer freeUsed) {
-        this.freeUsed = freeUsed;
+    public void setOcrUsed(Integer ocrUsed) {
+        this.ocrUsed = ocrUsed;
     }
 
-    public Integer getFreeRefunded() {
-        return freeRefunded;
+    public Integer getOcrRefunded() {
+        return ocrRefunded;
     }
 
-    public void setFreeRefunded(Integer freeRefunded) {
-        this.freeRefunded = freeRefunded;
+    public void setOcrRefunded(Integer ocrRefunded) {
+        this.ocrRefunded = ocrRefunded;
+    }
+
+    public Integer getTranslateTotal() {
+        return translateTotal;
+    }
+
+    public void setTranslateTotal(Integer translateTotal) {
+        this.translateTotal = translateTotal;
+    }
+
+    public Integer getTranslateUsed() {
+        return translateUsed;
+    }
+
+    public void setTranslateUsed(Integer translateUsed) {
+        this.translateUsed = translateUsed;
+    }
+
+    public Integer getTranslateRefunded() {
+        return translateRefunded;
+    }
+
+    public void setTranslateRefunded(Integer translateRefunded) {
+        this.translateRefunded = translateRefunded;
     }
 
     public LocalDateTime getUpdatedAt() {
@@ -56,4 +83,3 @@ public class QuotaAccountEntity {
         this.updatedAt = updatedAt;
     }
 }
-

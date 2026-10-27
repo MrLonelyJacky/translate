@@ -33,7 +33,8 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final long expireSeconds;
-    private final int freeTotal;
+    private final int ocrTotal;
+    private final int translateTotal;
     private final UserMapper userMapper;
     private final QuotaAccountMapper quotaAccountMapper;
     private final ObjectMapper objectMapper;
@@ -48,7 +49,8 @@ public class AuthService {
 
     public AuthService(JwtTokenProvider jwtTokenProvider,
                        @Value("${app.jwt.expire-seconds:7200}") long expireSeconds,
-                       @Value("${app.quota.free-total:3}") int freeTotal,
+                       @Value("${app.quota.ocr-total:3}") int ocrTotal,
+                       @Value("${app.quota.translate-total:3}") int translateTotal,
                        @Value("${app.wechat.enabled:false}") boolean wechatEnabled,
                        @Value("${app.wechat.app-id:}") String appId,
                        @Value("${app.wechat.app-secret:}") String appSecret,
@@ -59,7 +61,8 @@ public class AuthService {
                        ObjectMapper objectMapper) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.expireSeconds = expireSeconds;
-        this.freeTotal = freeTotal;
+        this.ocrTotal = ocrTotal;
+        this.translateTotal = translateTotal;
         this.wechatEnabled = wechatEnabled;
         this.appId = appId;
         this.appSecret = appSecret;
@@ -234,11 +237,13 @@ public class AuthService {
         }
         QuotaAccountEntity quota = new QuotaAccountEntity();
         quota.setUserId(userId);
-        quota.setFreeTotal(freeTotal);
-        quota.setFreeUsed(0);
-        quota.setFreeRefunded(0);
+        quota.setOcrTotal(ocrTotal);
+        quota.setOcrUsed(0);
+        quota.setOcrRefunded(0);
+        quota.setTranslateTotal(translateTotal);
+        quota.setTranslateUsed(0);
+        quota.setTranslateRefunded(0);
         quota.setUpdatedAt(LocalDateTime.now());
         quotaAccountMapper.insert(quota);
     }
 }
-
