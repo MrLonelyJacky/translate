@@ -6,8 +6,7 @@ const route = useRoute()
 
 const navItems = [
   { path: '/upload', label: '图文识别' },
-  { path: '/ocr', label: '文字确认' },
-  { path: '/result', label: '结果预览' },
+  { path: '/ocr', label: '识别与翻译' },
 ]
 </script>
 

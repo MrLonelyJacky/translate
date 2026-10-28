@@ -13,6 +13,7 @@ export type TranslateLine = {
 
 const STORAGE_KEY = 'docbridge_image_translate_result'
 const OCR_DRAFT_STORAGE_KEY = 'docbridge_image_ocr_draft'
+const OCR_EDIT_STORAGE_KEY = 'docbridge_image_ocr_edit'
 
 const isBlobUrl = (value: string) => value.startsWith('blob:')
 
@@ -29,6 +30,17 @@ export const useTranslateStore = defineStore('translate', () => {
     }
   }
 
+  const clearTranslation = () => {
+    lines.value = []
+    sessionStorage.removeItem(STORAGE_KEY)
+  }
+
+  const updateOcrText = (text: string) => {
+    ocrText.value = text
+    clearTranslation()
+    sessionStorage.setItem(OCR_EDIT_STORAGE_KEY, text)
+  }
+
   const setResult = (payload: { imageUrl: string; lines: TranslateLine[]; sourceName: string }) => {
     if (imageUrl.value && imageUrl.value !== payload.imageUrl) {
       revokeIfBlob(imageUrl.value)
@@ -39,7 +51,8 @@ export const useTranslateStore = defineStore('translate', () => {
     sourceName.value = payload.sourceName
 
     // Blob URL is only valid in current page lifecycle, so do not persist it.
-    const persistableImageUrl = isBlobUrl(payload.imageUrl) ? '' : payload.imageUrl
+    const persistableImageUrl =
+      isBlobUrl(payload.imageUrl) || sessionStorage.getItem(OCR_DRAFT_STORAGE_KEY) ? '' : payload.imageUrl
     sessionStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ imageUrl: persistableImageUrl, lines: payload.lines, sourceName: payload.sourceName }),
@@ -56,7 +69,7 @@ export const useTranslateStore = defineStore('translate', () => {
     }
     try {
       const parsed = JSON.parse(raw)
-      imageUrl.value = parsed.imageUrl ?? ''
+      imageUrl.value = parsed.imageUrl || imageUrl.value
       lines.value = Array.isArray(parsed.lines) ? parsed.lines : []
       sourceName.value = parsed.sourceName ?? ''
     } catch {
@@ -65,13 +78,15 @@ export const useTranslateStore = defineStore('translate', () => {
   }
 
   const setOcrDraft = (payload: { imageUrl: string; sourceName: string; ocrText: string; ocrCount: number }) => {
-    if (imageUrl.value && imageUrl.value !== payload.imageUrl && lines.value.length > 0) {
+    if (imageUrl.value && imageUrl.value !== payload.imageUrl) {
       revokeIfBlob(imageUrl.value)
     }
+    clearTranslation()
     imageUrl.value = payload.imageUrl
     sourceName.value = payload.sourceName
     ocrText.value = payload.ocrText
     ocrCount.value = payload.ocrCount
+    sessionStorage.removeItem(OCR_EDIT_STORAGE_KEY)
     const persistableImageUrl = isBlobUrl(payload.imageUrl) ? '' : payload.imageUrl
     sessionStorage.setItem(
       OCR_DRAFT_STORAGE_KEY,
@@ -96,7 +111,7 @@ export const useTranslateStore = defineStore('translate', () => {
       const parsed = JSON.parse(raw)
       imageUrl.value = parsed.imageUrl ?? imageUrl.value
       sourceName.value = parsed.sourceName ?? sourceName.value
-      ocrText.value = parsed.ocrText ?? ''
+      ocrText.value = sessionStorage.getItem(OCR_EDIT_STORAGE_KEY) ?? parsed.ocrText ?? ''
       ocrCount.value = Number(parsed.ocrCount ?? 0)
     } catch {
       clearOcrDraft()
@@ -107,6 +122,7 @@ export const useTranslateStore = defineStore('translate', () => {
     ocrText.value = ''
     ocrCount.value = 0
     sessionStorage.removeItem(OCR_DRAFT_STORAGE_KEY)
+    sessionStorage.removeItem(OCR_EDIT_STORAGE_KEY)
   }
 
   const clearResult = () => {
@@ -126,6 +142,8 @@ export const useTranslateStore = defineStore('translate', () => {
     ocrCount,
     setResult,
     setOcrDraft,
+    updateOcrText,
+    clearTranslation,
     clearOcrDraft,
     clearResult,
     hydrate,
