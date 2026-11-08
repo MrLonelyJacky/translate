@@ -6,6 +6,7 @@ WORKDIR /app/frontend
 RUN corepack enable
 
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN pnpm config set registry https://registry.npmmirror.com
 RUN pnpm install --frozen-lockfile
 
 COPY frontend .
